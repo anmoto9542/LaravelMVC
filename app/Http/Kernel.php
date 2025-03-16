@@ -21,6 +21,7 @@ class Kernel extends HttpKernel
 //        \App\Http\Middleware\CheckForMaintenanceMode::class,
 //        \Illuminate\Foundation\Http\Middleware\AuthenticateWithBasicAuth::class,
         \Illuminate\Routing\Middleware\SubstituteBindings::class,
+        \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
     ];
 
     /**
