@@ -10,16 +10,10 @@ use App\Http\Resources\LoginInfoVo;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Redis;
 
 class LoginService
 {
-    private TokenService $tokenService;
-
-    public function __construct(TokenService $tokenService)
-    {
-        $this->tokenService = $tokenService;
-    }
-
     /**
      * 登入並回傳Token
      * @param LoginReq $loginReq
@@ -30,38 +24,38 @@ class LoginService
     {
         try {
             // 查詢帳號
-            $accountEntity = User::where('Email', $loginReq->email)
+            $user = User::where('Email', $loginReq->email)
                 ->where('IsDeleted', false)
                 ->first();
 
             // 檢查帳號是否存在
-            if (!$accountEntity) {
+            if (!$user) {
                 throw new CustomException(StatusCode::ERROR_4);
+            }
+
+            // 檢查密碼
+            $password = $user->password;
+            $reqPassword = $loginReq->password;
+            if (Hash::check($reqPassword, $password)) {
+                // 生成 Token
+                $token = $user->createToken('apiToken')->plainTextToken;
+
+                // 設定登入結果資料
+                $infoVo = new LoginInfoVo(
+                    null,
+                    $user->id,
+                    $user->email,
+                    $user->name,
+                    $user->avatar,
+                    $user->sysadmin);
+
+                $resultVo = new GetLoginResultVo(null, $token, $infoVo);
+
+                Redis::setex('user_token' . $user->id, 3600, $token);
+
+                return response()->json($resultVo);
             } else {
-                // 檢查密碼
-                $password = $accountEntity->password;
-                $reqPassword = $loginReq->password;
-
-                if (Hash::check($reqPassword, $password)) {
-                    // 生成 Token
-                    $token = $this->tokenService->generateToken($accountEntity);
-
-                    // 設定登入結果資料
-                    $infoVo = new LoginInfoVo(
-                        null,
-                        $accountEntity->AccountID,
-                        $accountEntity->Email,
-                        $accountEntity->Name,
-                        $accountEntity->Avatar,
-                        $accountEntity->Sysadmin);
-
-                    $resultVo = new GetLoginResultVo(null, $token, $infoVo);
-//                    $resultVo = new GetLoginResultVo(null, null, $infoVo);
-
-                    return response()->json($resultVo);
-                } else {
-                    throw new CustomException(StatusCode::ERROR_4);
-                }
+                throw new CustomException(StatusCode::ERROR_4);
             }
         } catch (CustomException $e) {
             Log::error($e->getMessage());

@@ -25,34 +25,36 @@ class AccountService
     {
         try {
             // 檢查帳號是否已存在
-            $user = User::where('Email', $req->email)
-                ->where('IsDeleted', false)
+            $user = User::where('email', $req->email)
+                ->where('isDeleted', false)
                 ->first();
 
             if ($user) {
                 throw new CustomException(StatusCode::ERROR_2);
             }
 
-            // 建立新帳戶
-            $user = new User();
+
             $now = now();
-            $user->Email = $req->email;
-            $user->Password = Hash::make($req->password); // Laravel 內建密碼 Hash
-            $user->Name = $req->account_name;
             // 上傳圖片
+            $imagePath = '';
             if ($req->avatar && $req->avatar->isValid()) {
                 $imageName = 'profile_' . time() . '.' . $req->avatar->getClientOriginalExtension();
-                //
                 $imagePath = $req->avatar->storeAs('profile_pictures', $imageName, 'public');
-
-                $user->Avatar = $imagePath;
             }
-            $user->Sysadmin = 0;
-            $user->Status = 1;
-            $user->IsDeleted = false;
-            $user->CreatedTime = $now;
-            $user->UpdatedTime = $now;
-            $user->save();
+
+            // 建立新帳戶
+            User::create([
+                'email' => $req->email,
+                'password' => Hash::make($req->password), // Laravel 內建密碼 Hash
+                'name' => $req->name,
+                'avatar' => $imagePath,
+                'status' => 1,
+                'sysadmin' => 0,
+                'isDeleted' => false,
+                'createdTime' => $now,
+                'updatedTime' => $now,
+            ]);
+            return response()->json([]);
 
         } catch (CustomException $ce) {
             throw $ce;
@@ -60,8 +62,6 @@ class AccountService
             Log::error("createAccount error: ", ['error' => $e->getMessage()]);
             throw new CustomException(StatusCode::ERROR_1);
         }
-
-        return response()->json([]);
 
     }
 
@@ -102,14 +102,14 @@ class AccountService
             } else {
                 throw new CustomException(StatusCode::ERROR_3);
             }
-
+            return response()->json([]);
         } catch (CustomException $ce) {
             throw $ce;
         } catch (\Exception $e) {
             Log::error("updateAccount error: ", ['error' => $e->getMessage()]);
             throw new CustomException(StatusCode::ERROR_1);
         }
-        return response()->json([]);
+
     }
 
     /**
@@ -133,6 +133,8 @@ class AccountService
                 $user->updated_time = now();
 
                 $user->save();
+
+                return response()->json([]);
             } else {
                 throw new CustomException(StatusCode::ERROR_3);
             }
@@ -143,6 +145,5 @@ class AccountService
             Log::error("updateAccount error: ", ['error' => $e->getMessage()]);
             throw new CustomException(StatusCode::ERROR_1);
         }
-        return response()->json([]);
     }
 }

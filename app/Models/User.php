@@ -2,20 +2,18 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-use Tymon\JWTAuth\Contracts\JWTSubject;
 
-class User extends Authenticatable implements JWTSubject
+class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
 
-    protected $table = 'Account'; // 指定資料表名稱
-    protected $primaryKey = 'AccountID'; // 指定主鍵欄位
+//    protected $table = 'Users'; // 指定資料表名稱
+//    protected $primaryKey = 'user_id'; // 指定主鍵欄位
 
     /**
      * The attributes that are mass assignable.
@@ -23,15 +21,15 @@ class User extends Authenticatable implements JWTSubject
      * @var list<string>
      */
     protected $fillable = [
-        'Email',
-        'Password',
-        'Name',
-        'Avatar',
-        'Status',
-        'Sysadmin',
-        'IsDeleted',
-        'CreatedTime',
-        'UpdatedTime'
+        'email',
+        'password',
+        'name',
+        'avatar',
+        'status',
+        'sysadmin',
+        'isDeleted',
+        'createdTime',
+        'updatedTime'
     ];
 
     /**
@@ -62,18 +60,18 @@ class User extends Authenticatable implements JWTSubject
      *
      * @return mixed
      */
-    public function getJWTIdentifier()
-    {
-        return $this->getKey();
-    }
+//    public function getJWTIdentifier()
+//    {
+//        return $this->getKey();
+//    }
 
     /**
      * Return a key value array, containing any custom claims to be added to the JWT.
      *
      * @return array
      */
-    public function getJWTCustomClaims()
-    {
-        return [];
-    }
+//    public function getJWTCustomClaims()
+//    {
+//        return [];
+//    }
 }

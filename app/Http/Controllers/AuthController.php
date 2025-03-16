@@ -7,6 +7,7 @@ use App\Http\Enums\StatusCode;
 use App\Http\Requests\LoginReq;
 use App\Services\LoginService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 
 class AuthController extends BaseController
 {
@@ -14,7 +15,6 @@ class AuthController extends BaseController
     public function __construct(LoginService $loginService) {
         parent::__construct();
         $this->loginService = $loginService;
-//        $this->middleware('auth:api', ['except' => ['login']]);
     }
 
     /**
@@ -44,42 +44,11 @@ class AuthController extends BaseController
     public function logout(): JsonResponse
     {
         try {
-            auth()->logout();
+            Auth::user()->tokens()->delete();
             return self::apiResp("使用者成功登出！");
         } catch (\Exception $e) {
             return self::apiRespError(StatusCode::ERROR_1);
         }
     }
 
-    /**
-     * Refresh a token.
-     *
-     * @return \Illuminate\Http\JsonResponse
-     */
-//    public function refresh() {
-//        return $this->createNewToken(auth()->refresh());
-//    }
-    /**
-     * Get the authenticated User.
-     *
-     * @return \Illuminate\Http\JsonResponse
-     */
-//    public function userProfile() {
-//        return response()->json(auth()->user());
-//    }
-    /**
-     * Get the token array structure.
-     *
-     * @param  string $token
-     *
-     * @return \Illuminate\Http\JsonResponse
-     */
-//    protected function createNewToken($token){
-//        return response()->json([
-//            'access_token' => $token,
-//            'token_type' => 'bearer',
-//            'expires_in' => auth()->factory()->getTTL() * 60,
-//            'user' => auth()->user()
-//        ]);
-//    }
 }

@@ -32,13 +32,4 @@ class GetLoginResultVo extends JsonResource
         ];
     }
 
-    public function getAuthToken()
-    {
-        return $this->authToken;
-    }
-
-    public function getLoginInfoVo()
-    {
-        return $this->loginInfoVo;
-    }
 }

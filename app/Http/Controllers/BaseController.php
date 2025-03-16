@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\ApiResponseResource;
-use Exception;
 use App\Http\Enums\StatusCode;
 use Illuminate\Http\JsonResponse;
 
@@ -47,7 +46,7 @@ class BaseController extends Controller
     /**
      * 錯誤回傳
      */
-    public static function apiRespError(StatusCode $statusCode): JsonResponse
+    public static function  apiRespError(StatusCode $statusCode): JsonResponse
     {
         return self::apiRespFinal(null, $statusCode->value, $statusCode->getMessage(), "");
     }
@@ -73,6 +72,6 @@ class BaseController extends Controller
         ];
 
         // 使用 ApiResponseResource 來處理回應
-        return new JsonResponse(new ApiResponseResource($responseData));
+        return new JsonResponse(ApiResponseResource::make($responseData));
     }
 }
