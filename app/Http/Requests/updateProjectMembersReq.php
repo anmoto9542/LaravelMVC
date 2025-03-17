@@ -22,7 +22,9 @@ class updateProjectMembersReq extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'projectId' => 'required|int|max:16',
+            'member' => 'required|array', // 確保 member 是一個陣列
+            'member.*' => 'required|numeric|max:999999', // 對陣列中的每個元素進行驗證
         ];
     }
 }

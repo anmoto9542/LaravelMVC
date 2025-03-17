@@ -10,7 +10,10 @@ use App\Http\Requests\CreateProjectReq;
 use App\Http\Requests\updateProjectMembersReq;
 use App\Http\Resources\GetProjectResultVo;
 use App\Models\Project;
+use App\Models\ProjectMember;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class ProjectService
@@ -45,11 +48,50 @@ class ProjectService
         }
     }
 
-
+    // 新增專案
     public function createProject(CreateProjectReq $req): JsonResponse
     {
         try {
+            $now = now();
+            // 設定生成 6 碼數字的範圍
+            do {
+                $randomNumber = mt_rand(100000, 999999); // 生成 6 位數的隨機數字
+            } while (DB::table('Projects')->where('code', $randomNumber)->exists());
 
+            // 建立新專案
+            $project = Project::create([
+                'customerId' => auth()->id(),
+                'name' => $req->input('name'),
+                'remark' => $req->input('remark'),
+                'code' => $randomNumber,
+                'isDeleted' => false,
+                'status' => 1,
+                'createUser' => auth()->id(),
+                'createdTime' => $now,
+                'updateUser' => auth()->id(),
+                'updatedTime' => $now,
+            ]);
+
+            // 新增專案成員
+            foreach ($req->input('members') as $member) {
+                $user = User::where('id', $member)->first();
+                if (!$user) {
+                    throw new CustomException(StatusCode::ERROR_5);
+                }
+
+                ProjectMember::create([
+                    'memberId' => $member,
+                    'projectId' => $project->id,
+                    'status' => 1,
+                    'createUser' => auth()->id(),
+                    'createdTime' => $now,
+                    'updateUser' => auth()->id(),
+                    'updatedTime' => $now,
+                ]);
+
+                //告知郵件
+                event(new MemberJoinedProject($user));
+            }
 
             return response()->json([]);
         } catch (CustomException $e) {
@@ -61,14 +103,33 @@ class ProjectService
         }
     }
 
+    // 新增專案成員
     public function updateProjectMembers(updateProjectMembersReq $req): JsonResponse
     {
         try {
+            $now = now();
+            $project = Project::find($req->projectId);
+            if (!$project) {
+                throw new CustomException(StatusCode::ERROR_6);
+            }
 
-
-            // 發送信件給被加入專案的成員
-            $user = '';
-            event(new MemberJoinedProject($user));
+            foreach ($req->input('members') as $member) {
+                $user = User::where('id', $member)->first();
+                if (!$user) {
+                    throw new CustomException(StatusCode::ERROR_5);
+                }
+                ProjectMember::create([
+                    'memberId' => $member,
+                    'projectId' => $req->projectId,
+                    'status' => 1,
+                    'createUser' => auth()->id(),
+                    'createdTime' => $now,
+                    'updateUser' => auth()->id(),
+                    'updatedTime' => $now,
+                ]);
+                //告知郵件
+                event(new MemberJoinedProject($user));
+            }
 
             return response()->json([]);
         } catch (CustomException $e) {

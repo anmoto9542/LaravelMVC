@@ -14,4 +14,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/acctUpdate', [AccountController::class, 'updateAccount']);
     Route::post('/acctDelete', [AccountController::class, 'deleteAccount']);
     Route::post('/getProjectData', [ProjectController::class, 'getProjectData']);
+    Route::post('/createProject', [ProjectController::class, 'createProject']);
+    Route::post('/updateProjectMembers', [ProjectController::class, 'updateProjectMembers']);
 });
